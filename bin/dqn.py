@@ -23,17 +23,32 @@ if __name__ == '__main__':
     env.render()
     # create interactive policies for each agent
     policies = [DQNPolicy(env,i) for i in range(env.n)]
-    # execution loop
-    obs_n = env.reset()
-    while True:
-        # query for action from each agent's policy
-        act_n = []
-        for i, policy in enumerate(policies):
-            act_n.append(policy.action(obs_n[i]))
-        # step environment
-        obs_n, reward_n, done_n, _ = env.step(act_n)
-        # render all agent views
-        env.render()
-        # display rewards
-        #for agent in env.world.agents:
-        #    print(agent.name + " reward: %0.3f" % env._get_reward(agent))
+
+    N_episodes_train = 1000
+    N_episodes_test = 20
+
+    for episode in range(N_episodes_train + N_episodes_test):
+        if episode >= N_episodes_train:
+            print('no exploration, perform with what agent learnt')
+            # agent.epsilon = 0  # set no exploration for test episodes
+        # execution loop
+        obs_n = env.reset()
+        n_iter_episode = 0
+        while not env.is_terminated():
+            # query for action from each agent's policy
+            act_n = []
+            for i, policy in enumerate(policies):
+                act_n.append(policy.action(obs_n[i]))
+            # step environment
+            obs_n, reward_n, done_n, _ = env.step(act_n)
+            # render all agent views
+            env.render()
+            # display rewards
+            #for agent in env.world.agents:
+            #    print(agent.name + " reward: %0.3f" % env._get_reward(agent))
+
+            n_iter_episode +=1
+            if (episode >= N_episodes_train) and (n_iter_episode > 2000):
+                raise IOError("Bad policy found! Non-terminal episode!")
+
+        print('Episode', episode, ' done in', n_iter_episode, ' iterations')
